@@ -30,7 +30,3 @@ async def get_news_details(news_name:str=Path(...,title="新闻名称",descripti
     return {
         "news_id":f"这是about{news_name}新闻的详细信息"
     }
-#查询参数Query Parameters:在URL中以?分隔，参数以键值对形式出现，多个参数用&连接，函数参数与查询参数名称一致
-@app.get("/")
-async def read_root():
-    return {"message": "Hello, FastAPI!"}
