@@ -87,6 +87,9 @@ async def get_db():
 #图书查询接口
 @app.get("/library/books")
 async def get_books(db:AsyncSession=Depends(get_db)):
-    result=await db.execute(sqlalchemy.select(Book))#执行查询
-    books=result.scalars().all()#获取查询结果
-    return books
+    result=await db.execute(sqlalchemy.select(Book))#获取一个ORM查询对象
+    books=result.scalars().all()#对象中提取所有的Book实例
+    book=result.scalars().first()#提取第一个Book实例
+
+    book_id=await db.get(Book,2)#根据主键查询Book实例
+    return book_id
