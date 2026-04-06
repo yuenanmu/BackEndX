@@ -1,13 +1,13 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from datetime import datetime
 from fastapi.concurrency import asynccontextmanager
 from sqlalchemy import DateTime, Float, String,func
 import sqlalchemy
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped,mapped_column #Mapped约定属性类型，mapped_column约定属性字段
 
-
+#创建异步引擎
 ASYNC_DATABASE_URL="mysql+aiomysql://root:173059@localhost:3306/FastAPI_first?charset=utf8"
 async_engine=create_async_engine(ASYNC_DATABASE_URL,
     echo=True,#optput SQL statemens
@@ -16,10 +16,10 @@ async_engine=create_async_engine(ASYNC_DATABASE_URL,
 )
 
 
-#定义类
+#定义模型类，用于数据表结构定义
 class Base(DeclarativeBase):
-    create_time:Mapped[datetime]=mapped_column(DateTime,insert_default=func.now(),comment="创建时间")
-    update_time:Mapped[datetime]=mapped_column(DateTime,insert_default=func.now(),onupdate=func.now(),comment="更新时间")
+    create_time:Mapped[datetime]=mapped_column(DateTime,insert_default=func.now(),server_default=func.now(),comment="创建时间")
+    update_time:Mapped[datetime]=mapped_column(DateTime,insert_default=func.now(),server_default=func.now(),onupdate=func.now(),comment="更新时间")
     
 
 class Book(Base):
@@ -66,7 +66,27 @@ app = FastAPI(lifespan=lifespan)
 @app.get("/")
 async def root():
     return {"msg":"Hello World"}
+#创建一个查询窗口，查询books表中的数据->创建依赖项获取数据库会话+Depends注入路由处理函数
+AsyncSessionLocal=async_sessionmaker(
+    bind=async_engine,#绑定异步引擎
+    expire_on_commit=False,#提交后会话不失效
+    class_=AsyncSession,#指定会话类型
+)
+#创建依赖项，获取数据库会话
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()#提交事务
+        except Exception as e:
+            await session.rollback()#回滚事务
+            raise e
+        finally:
+            await session.close()#关闭会话
 
-
-
-
+#图书查询接口
+@app.get("/library/books")
+async def get_books(db:AsyncSession=Depends(get_db)):
+    result=await db.execute(sqlalchemy.select(Book))#执行查询
+    books=result.scalars().all()#获取查询结果
+    return books
