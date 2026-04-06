@@ -1,7 +1,7 @@
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Path
 from datetime import datetime
 from fastapi.concurrency import asynccontextmanager
-from sqlalchemy import DateTime, Float, String,func
+from sqlalchemy import DateTime, Float, String,func, select
 import sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
@@ -91,5 +91,31 @@ async def get_books(db:AsyncSession=Depends(get_db)):
     books=result.scalars().all()#对象中提取所有的Book实例
     book=result.scalars().first()#提取第一个Book实例
 
-    book_id=await db.get(Book,2)#根据主键查询Book实例
+    book_id=await db.get(Book,3)#根据主键查询Book实例/数据库数据。没有不会报错，返回noll
     return book_id
+
+#图书查询接口，添加路径参数(用【比较判断】筛选一本书籍)
+@app.get("/library/books/id/{book_id}")
+async def get_book_by_id(book_id:int=Path(...,gt=0,description="书籍ID"),db:AsyncSession=Depends(get_db)):
+    result=await db.execute(select(Book).where(Book.id==book_id))#根据路径参数查询Book实例
+    book=result.scalar_one_or_none()#提取单个Book实例，如果没有或有多个则返回None
+    return book
+#图书查询接口，通过【比较判断】价格筛选一本/多本书籍
+@app.get("/library/books/price/{price}")
+async def get_books_by_price(price:float=Path(...,gt=0,description="筛选大于价格的所有书籍 "),db:AsyncSession=Depends(get_db)):
+    result=await db.execute(select(Book).where(Book.price>=price))#根据价格查询Book实例
+    books=result.scalars().all()#提取所有匹配价格的Book实例
+    return books
+#图书查询接口，通过【模糊匹配】筛选一本/多本书籍
+@app.get("/library/books/title/{title}")
+async def get_books_by_title(title:str=Path(...,description="筛选包含标题的所有书籍"),db:AsyncSession=Depends(get_db)):
+    result=await db.execute(select(Book).where(Book.title.like(f"%{title}%")))#根据标题模糊查询Book实例
+    books=result.scalars().all()#提取所有匹配标题的Book实例
+    return books
+#图书查询接口，通过【in_()包含】筛选一本/多本书籍
+@app.get("/library/books/id_list")
+async def get_book_by_id_list(db:AsyncSession=Depends(get_db)):
+    id_list=[1,2,5,7]#要查询的ID列表
+    result=await db.execute(select(Book).where(Book.id.in_(id_list)))#根据路径参数查询Book实例
+    books=result.scalars().all()#提取单个Book实例，如果没有或有多个则返回None
+    return books
