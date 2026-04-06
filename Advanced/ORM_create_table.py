@@ -29,7 +29,12 @@ class Book(Base):
     author:Mapped[str]=mapped_column(String(255),nullable=False,comment="书籍作者")
     publisher:Mapped[str]=mapped_column(String(255),nullable=False,comment="书籍出版社")
     price:Mapped[float]=mapped_column(Float,nullable=False,comment="书籍价格")
-    
+
+class User(Base):
+    __tablename__="users"
+    id:Mapped[int]=mapped_column(primary_key=True,autoincrement=True)
+    username:Mapped[str]=mapped_column(String(255),nullable=False,comment="用户名")
+    password:Mapped[str]=mapped_column(String(255),nullable=False,comment="用户密码")
 
 #创建表
 #获取异步引擎，建表
