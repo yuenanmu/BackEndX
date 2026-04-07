@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, Path
+from fastapi import Depends, FastAPI, HTTPException, Path
 from datetime import datetime
 from fastapi.concurrency import asynccontextmanager
 from pydantic import BaseModel
@@ -153,3 +153,19 @@ async def add_book(book:BookBase,db:AsyncSession=Depends(get_db)):
     db.add(book_obj)#将新书籍添加到数据库会话中
     await db.flush()#刷新会话，将新书籍插入数据库并获取生成的ID
     return {"msg":"书籍添加成功","book_id":book_obj.id}
+#图书更新接口，通过【PUT+id】实现数据库数据的更新
+@app.put("/library/books/update_book/{book_id}")
+async def update_book(book_id:int,data:BookBase,db:AsyncSession=Depends(get_db)):
+    result=await db.get(Book,book_id)#根据路径参数查询Book实例
+    book_obj=result#提取Book实例
+    if not book_obj:
+        #return {"msg":"书籍不存在"}
+        raise HTTPException(status_code=404,detail="书籍不存在")
+    #更新字段
+    book_obj.title=data.title
+    book_obj.author=data.author
+    book_obj.publisher=data.publisher
+    book_obj.price=data.price
+    #写入数据库
+    await db.flush()#刷新会话，将更新后的书籍信息写入数据库
+    return {"msg":"书籍更新成功"}
