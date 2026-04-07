@@ -169,3 +169,13 @@ async def update_book(book_id:int,data:BookBase,db:AsyncSession=Depends(get_db))
     #写入数据库
     await db.flush()#刷新会话，将更新后的书籍信息写入数据库
     return {"msg":"书籍更新成功"}
+#图书删除接口，通过【DELETE+id】实现数据库数据的删除
+@app.delete("/library/books/delete_book/{book_id}")
+async def delete_book(book_id:int,db:AsyncSession=Depends(get_db)):
+    result=await db.get(Book,book_id)#根据id在Book表中查询书籍实例
+    book_obj=result#提取书籍实例
+    if not book_obj:
+        raise HTTPException(status_code=404,msg="书籍不存在")
+    await db.delete(book_obj)
+    await db.flush()#刷新会话，将删除操作写入数据库
+    return {"msg":"书籍删除成功"}
