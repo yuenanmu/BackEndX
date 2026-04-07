@@ -1,6 +1,7 @@
 from fastapi import Depends, FastAPI, Path
 from datetime import datetime
 from fastapi.concurrency import asynccontextmanager
+from pydantic import BaseModel
 from sqlalchemy import DateTime, Float, String,func, select
 import sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -138,3 +139,17 @@ async def get_books_page_slice(
     result = await db.execute(query)
     books = result.scalars().all()
     return books
+#图书添加接口，通过【请求体参数】实现数据库数据的添加
+class BookBase(BaseModel):
+    #id:str
+    title:str
+    author:str
+    publisher:str
+    price:float
+
+@app.post("/library/books/add_book")
+async def add_book(book:BookBase,db:AsyncSession=Depends(get_db)):
+    book_obj=Book(**book.__dict__)#请求体参数转换成ORM对象
+    db.add(book_obj)#将新书籍添加到数据库会话中
+    await db.flush()#刷新会话，将新书籍插入数据库并获取生成的ID
+    return {"msg":"书籍添加成功","book_id":book_obj.id}
