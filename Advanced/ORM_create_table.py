@@ -125,3 +125,16 @@ async def calculate_book(db:AsyncSession=Depends(get_db)):
     result=await db.execute(select(func.count(Book.id),func.avg(Book.price),func.sum(Book.price),func.max(Book.price)))#统计书籍数量和平均价格
     count,avg_price,sum_price,max_price=result.fetchone()#提取统计结果
     return {"count":count,"avg_price":round(avg_price, 2),"sum_price":round(sum_price, 2),"max_price":round(max_price, 2)}
+#图书分页查询接口，通过【offset和limit】实现分页查询
+@app.get("/library/books/slice/page_slice")
+async def get_books_page_slice(
+    page: int = 1, 
+    page_size: int = 1, 
+    db: AsyncSession = Depends(get_db)
+):
+    skip=(page-1)*page_size#跳过的记录数
+    limit=page_size#返回地记录数
+    query=select(Book).offset(skip).limit(limit)
+    result = await db.execute(query)
+    books = result.scalars().all()
+    return books
