@@ -119,3 +119,9 @@ async def get_book_by_id_list(db:AsyncSession=Depends(get_db)):
     result=await db.execute(select(Book).where(Book.id.in_(id_list)))#根据路径参数查询Book实例
     books=result.scalars().all()#提取单个Book实例，如果没有或有多个则返回None
     return books
+#图书统计接口，通过【聚合查询】统计书籍数量、平均价格和总价格
+@app.get("/library/books/calculate")
+async def calculate_book(db:AsyncSession=Depends(get_db)):
+    result=await db.execute(select(func.count(Book.id),func.avg(Book.price),func.sum(Book.price),func.max(Book.price)))#统计书籍数量和平均价格
+    count,avg_price,sum_price,max_price=result.fetchone()#提取统计结果
+    return {"count":count,"avg_price":round(avg_price, 2),"sum_price":round(sum_price, 2),"max_price":round(max_price, 2)}
