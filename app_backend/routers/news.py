@@ -1,6 +1,6 @@
-from fastapi import APIRouters
+from fastapi import APIRouter
 
-router=APIRouters(prefix="/api/news",tags=["新闻相关接口"])
+router=APIRouter(prefix="/api/news",tags=["新闻相关接口"])
 
 @router.get("/categories")
 async def get_news_categories():
