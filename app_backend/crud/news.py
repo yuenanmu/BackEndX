@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from models.news import Category#导入自定义的模型类Category
+from app_backend.models.news import Category#导入自定义的模型类Category
 async def get_news_categories(db:AsyncSession, skip: int = 0, limit: int = 10):
     query_stmt=select(Category).offset(skip).limit(limit)
     result=await db.execute(query_stmt)

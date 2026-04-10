@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 
 #创建异步引擎
-ASYNC_DATABASE_URL="mysql+aiomysql://root:173059@localhost:3306/FastAPI_first?charset=utf8"
+ASYNC_DATABASE_URL="mysql+aiomysql://root:173059@localhost:3306/news_app?charset=utf8"
 async_engine=create_async_engine(ASYNC_DATABASE_URL,
     echo=True,#optput SQL statemens
     pool_size=5,#连接池活跃用户的大小，默认为5
