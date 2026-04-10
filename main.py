@@ -1,14 +1,15 @@
 from fastapi import FastAPI
 from app_backend.routers import news
-import traceback
-import sys
+# import traceback
+# import sys
 
-# 强制打印所有错误
-def catch_exceptions(exc_type, exc_value, exc_traceback):
-    traceback.print_exception(exc_type, exc_value, exc_traceback)
+# # 强制打印所有错误
+# def catch_exceptions(exc_type, exc_value, exc_traceback):
+#     traceback.print_exception(exc_type, exc_value, exc_traceback)
 
-sys.excepthook = catch_exceptions
-app = FastAPI(debug=True)
+# sys.excepthook = catch_exceptions
+# app = FastAPI(debug=True)
+app = FastAPI()
 
 @app.get("/")
 async def read_root():
