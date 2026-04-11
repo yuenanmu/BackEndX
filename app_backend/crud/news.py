@@ -34,4 +34,15 @@ async def get_related_news(db:AsyncSession,news_id:int,category_id:int, limit: i
     query_stmt=select(News).where(News.category_id==category_id,News.id!=news_id).order_by(News.publish_time.desc()).limit(limit)
     result=await db.execute(query_stmt)
     related_news=result.scalars().all()
-    return related_news
+    related_news_msg=[{
+        "id": new_details.id,
+        "title": new_details.title,
+        "content": new_details.content,
+        "image": new_details.image or "null",
+        "author": new_details.author or "null",
+        "publishTime": new_details.publish_time or "2023-01-01T00:00:00",
+        "categoryId": new_details.category_id,
+        "views": new_details.views,
+    }
+     for new_details in related_news]
+    return related_news_msg
