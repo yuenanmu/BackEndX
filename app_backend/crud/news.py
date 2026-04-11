@@ -29,3 +29,9 @@ async def increase_news_views(db:AsyncSession,news_id:int):
     result=await db.execute(update_stmt)
     await db.commit()
     return result.rowcount>0
+async def get_related_news(db:AsyncSession,news_id:int,category_id:int, limit: int = 5):
+    #查询同一分类下的相关新闻，排除当前新闻，并按照发布时间降序排序!.order_by().limit()神来之笔！
+    query_stmt=select(News).where(News.category_id==category_id,News.id!=news_id).order_by(News.publish_time.desc()).limit(limit)
+    result=await db.execute(query_stmt)
+    related_news=result.scalars().all()
+    return related_news

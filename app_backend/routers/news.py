@@ -53,6 +53,8 @@ async def get_news_details(news_id:int=Query(...,alias="id", description="新闻
     add_views_res=await news.increase_news_views(db,new_details.id)
     if not add_views_res:
         raise HTTPException(status_code=500, detail="浏览量更新失败")
+    #获取相关新闻
+    related_news=await news.get_related_news(db,new_details.id,new_details.category_id,5)
     #重要的是两个点，一个路由，一个return结果。一个是定位结果，一个是解析结果。
     return {
     "code": 200,
@@ -66,6 +68,6 @@ async def get_news_details(news_id:int=Query(...,alias="id", description="新闻
         "publishTime": new_details.publish_time or "2023-01-01T00:00:00",
         "categoryId": new_details.category_id,
         "views": new_details.views,
-        "relatedNews": []
+        "relatedNews": related_news
     }
 }
