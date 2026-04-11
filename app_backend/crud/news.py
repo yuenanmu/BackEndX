@@ -1,4 +1,4 @@
-from sqlalchemy import func
+from sqlalchemy import func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app_backend.models.news import Category, News#导入自定义的模型类Category和News
@@ -24,3 +24,8 @@ async def get_news_details(db:AsyncSession,news_id:int):
     result=await db.execute(query_stmt)
     new_details=result.scalar_one_or_none()
     return new_details
+async def increase_news_views(db:AsyncSession,news_id:int):
+    update_stmt=update(News).where(News.id==news_id).values(views=News.views+1)
+    result=await db.execute(update_stmt)
+    await db.commit()
+    return result.rowcount>0

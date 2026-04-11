@@ -49,6 +49,10 @@ async def get_news_details(news_id:int=Query(...,alias="id", description="新闻
     #如果新闻不存在，抛出404错误
     if new_details is None:
         raise HTTPException(status_code=404, detail="新闻未找到")
+    #增加浏览量
+    add_views_res=await news.increase_news_views(db,new_details.id)
+    if not add_views_res:
+        raise HTTPException(status_code=500, detail="浏览量更新失败")
     #重要的是两个点，一个路由，一个return结果。一个是定位结果，一个是解析结果。
     return {
     "code": 200,
