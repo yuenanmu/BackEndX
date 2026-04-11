@@ -2,6 +2,10 @@ from sqlalchemy import func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app_backend.models.news import Category, News#导入自定义的模型类Category和News
+#普通的异步函数不需要进行依赖注入！直接传入db参数即可！不需要Depends(get_db)！
+# 因为这是一个纯粹的数据库操作函数，不涉及到HTTP请求的处理，所以不需要依赖注入来获取数据库会话对象！
+# 只要在调用这个函数时传入一个有效的AsyncSession对象就可以了！
+# 这样设计可以让这个函数更加灵活，可以在不同的上下文中使用，而不仅仅局限于FastAPI的请求处理过程中！
 async def get_news_categories(db:AsyncSession, skip: int = 0, limit: int = 10):
     query_stmt=select(Category).offset(skip).limit(limit)
     result=await db.execute(query_stmt)
