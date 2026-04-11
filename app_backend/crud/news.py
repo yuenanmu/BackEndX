@@ -1,9 +1,15 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app_backend.models.news import Category#导入自定义的模型类Category
+from app_backend.models.news import Category, News#导入自定义的模型类Category和News
 async def get_news_categories(db:AsyncSession, skip: int = 0, limit: int = 10):
     query_stmt=select(Category).offset(skip).limit(limit)
     result=await db.execute(query_stmt)
     categories=result.scalars().all()
     return categories#这是一个Category类型的列表，包含了查询到的所有Category对象
+async def get_news_list(db:AsyncSession,category_id: int, skip: int = 0, limit: int = 10):
+    #查询指定分类下的新闻
+    query_stmt=select(News).where(News.category_id==category_id).offset(skip).limit(limit)
+    result=await db.execute(query_stmt)
+    news_list=result.scalars().all()
+    return news_list
     

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from app_backend.crud import news
 from sqlalchemy.ext.asyncio import AsyncSession
 from app_backend.config.db_conf import get_db
@@ -20,4 +20,22 @@ async def get_news_categories(db: AsyncSession=Depends(get_db), skip: int = 0, l
             "limit": limit,
             "message":"这是新闻分类接口",
             "data": categories
+        }
+
+@router.get("/list")
+async def get_news_list(
+    db: AsyncSession=Depends(get_db),
+    category_id:int=Query(...,alias="categoryId", description="新闻分类ID"),
+    page: int = 0, 
+    page_size: int = Query(10,alias="pageSize")
+):
+    offset=(page-1)*page_size
+    # news_list=await news.get_news_list(db, offset, page_size)
+    return {"code":200, 
+            "message":"这是新闻列表接口",
+            "data": {
+                "list": "新闻列表",#news_list,
+                "total":"总量",
+                "hasMore":"是否有下一页"
+                }
         }
