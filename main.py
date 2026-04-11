@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app_backend.routers import news
+from app_backend.routers import news, users
 from fastapi.middleware.cors import CORSMiddleware
 # import traceback
 # import sys
@@ -31,5 +31,6 @@ async def read_root():
     return {"message": "Hello, FastAPI!"}
 #挂载模块化的路由（各个模块的接口）
 app.include_router(news.router)
+app.include_router(users.router)
 #运行指令
 # uvicorn main:app --reload
