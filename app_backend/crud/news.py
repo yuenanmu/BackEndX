@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app_backend.models.news import Category, News#导入自定义的模型类Category和News
@@ -12,4 +13,9 @@ async def get_news_list(db:AsyncSession,category_id: int, skip: int = 0, limit: 
     result=await db.execute(query_stmt)
     news_list=result.scalars().all()
     return news_list
-    
+#查询这个类别下的新闻总数
+async def get_news_num(db:AsyncSession,category_id: int):
+    query_stmt=select(func.count(News.id)).where(News.category_id==category_id)
+    result=await db.execute(query_stmt)
+    total=result.scalar_one()
+    return total

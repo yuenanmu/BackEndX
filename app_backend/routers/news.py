@@ -26,16 +26,18 @@ async def get_news_categories(db: AsyncSession=Depends(get_db), skip: int = 0, l
 async def get_news_list(
     db: AsyncSession=Depends(get_db),
     category_id:int=Query(...,alias="categoryId", description="新闻分类ID"),
-    page: int = 0, 
+    page: int = Query(1,ge=1, description="页码,从1开始"),
     page_size: int = Query(10,alias="pageSize")
 ):
     offset=(page-1)*page_size
-    # news_list=await news.get_news_list(db, offset, page_size)
+    news_list=await news.get_news_list(db, category_id, offset, page_size)
+    total=await news.get_news_num(db, category_id)
+    has_more=offset+len(news_list)<total
     return {"code":200, 
             "message":"这是新闻列表接口",
             "data": {
-                "list": "新闻列表",#news_list,
-                "total":"总量",
-                "hasMore":"是否有下一页"
+                "list": news_list,#"新闻列表",#
+                "total": total,
+                "hasMore": has_more
                 }
         }
