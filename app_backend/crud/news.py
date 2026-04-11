@@ -19,3 +19,8 @@ async def get_news_num(db:AsyncSession,category_id: int):
     result=await db.execute(query_stmt)
     total=result.scalar_one()
     return total
+async def get_news_details(db:AsyncSession,news_id:int):
+    query_stmt=select(News).where(News.id==news_id)
+    result=await db.execute(query_stmt)
+    new_details=result.scalar_one_or_none()
+    return new_details

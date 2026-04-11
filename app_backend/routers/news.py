@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import null
 from app_backend.crud import news
 from sqlalchemy.ext.asyncio import AsyncSession
 from app_backend.config.db_conf import get_db
@@ -41,3 +42,26 @@ async def get_news_list(
                 "hasMore": has_more
                 }
         }
+@router.get("/detail")
+async def get_news_details(news_id:int=Query(...,alias="id", description="新闻ID"),db: AsyncSession=Depends(get_db)):
+    
+    new_details=await news.get_news_details(db, news_id)
+    #如果新闻不存在，抛出404错误
+    if new_details is None:
+        raise HTTPException(status_code=404, detail="新闻未找到")
+    #重要的是两个点，一个路由，一个return结果。一个是定位结果，一个是解析结果。
+    return {
+    "code": 200,
+    "message": "success",
+    "data": {
+        "id": new_details.id,
+        "title": new_details.title,
+        "content": new_details.content,
+        "image": new_details.image or "null",
+        "author": new_details.author or "null",
+        "publishTime": new_details.publish_time or "2023-01-01T00:00:00",
+        "categoryId": new_details.category_id,
+        "views": new_details.views,
+        "relatedNews": []
+    }
+}
