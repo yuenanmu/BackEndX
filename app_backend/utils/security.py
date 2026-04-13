@@ -4,17 +4,6 @@ from passlib.context import CryptContext
 pwd_context=CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # #密码加密
-# def get_hash_password(password:str):
-#     # pwd=password
-#     # # Bcrypt 限制输入最大 72 字节，建议截断
-#     # if len(pwd) > 72:
-#     #     pwd = pwd[:72]
-#     #     print(f"Warning: Password truncated to 72 bytes (from {len(pwd)}).")
-#     # return pwd_context.hash(pwd)
-#     pwd_str = password.encode('utf-8')[:72].decode('utf-8', 'ignore')
-    
-#     # 3. 直接 hash 字符串
-#     return pwd_context.hash(pwd_str)
 def get_hash_password(password: str) -> str:
     # 1. 直接对【字符串】截断，不转 bytes！
     # 2. 安全截断：保证不超过 72 字节

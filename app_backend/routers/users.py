@@ -13,11 +13,12 @@ async def register(user_data: UserRegisterRequest, db:AsyncSession=Depends(get_d
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="用户名已存在")
     #创建新用户
     new_user=await users.create_user(db,user_data)
+    new_user_token=await users.creat_user_token(db,new_user.id)
     return {
         "code": 200,
         "message": "注册成功",
         "data": {
-            "token": "用户访问令牌",
+            "token": new_user_token,
             "userInfo": {
                 "id": new_user.id,
                 "username": new_user.username,

@@ -1,7 +1,10 @@
+from datetime import datetime, timedelta
+import uuid
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app_backend.models.users import User
+from app_backend.models.users import User, UserToken
 from app_backend.schemas.users import UserRegisterRequest
 from app_backend.utils import security
 
@@ -23,3 +26,19 @@ async def create_user(db:AsyncSession,user_data:UserRegisterRequest):
     await db.commit()
     await db.refresh(new_user)#刷新User对象状态，获取数据库生成的ID等信息
     return new_user
+async def creat_user_token(db:AsyncSession,user_id:int):
+    #生成新的令牌和过期时间
+    new_token=str(uuid.uuid4())
+    expires_at=datetime.now()+timedelta(days=7,hours=0,minutes=0,seconds=0)
+    #查询是否已有令牌
+    query_stmt=select(UserToken).where(UserToken.user_id==user_id)
+    result=await db.execute(query_stmt)
+    user_token=result.scalar_one_or_none()
+    if user_token:#有则更新
+        user_token.token=new_token
+        user_token.expires_at=expires_at
+    else:#无则创建,初始化UserToken对象
+        new_user_token=UserToken(token=new_token,expires_at=expires_at,user_id=user_id)
+        db.add(new_user_token)
+        await db.commit()
+    return new_token
