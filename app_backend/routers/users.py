@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app_backend.config.db_conf import get_db
-from app_backend.schemas.users import UserRegisterRequest
+from app_backend.schemas.users import UserAuthResponse, UserInfoResponse, UserRegisterRequest
 from app_backend.crud import users
+from app_backend.utils.response import success_response
 router=APIRouter(prefix="/api/users",tags=["用户相关接口"])
 
 @router.post("/register")
@@ -14,16 +15,18 @@ async def register(user_data: UserRegisterRequest, db:AsyncSession=Depends(get_d
     #创建新用户
     new_user=await users.create_user(db,user_data)
     new_user_token=await users.creat_user_token(db,new_user.id)
-    return {
-        "code": 200,
-        "message": "注册成功",
-        "data": {
-            "token": new_user_token,
-            "userInfo": {
-                "id": new_user.id,
-                "username": new_user.username,
-                "bio": new_user.bio,
-                "avatar": new_user.avatar,
-            }
-        }
-    }
+    # return {
+    #     "code": 200,
+    #     "message": "注册成功",
+    #     "data": {
+    #         "token": new_user_token,
+    #         "userInfo": {
+    #             "id": new_user.id,
+    #             "username": new_user.username,
+    #             "bio": new_user.bio,
+    #             "avatar": new_user.avatar,
+    #         }
+    #     }
+    # }
+    response_data=UserAuthResponse(token=new_user_token,userInfo=UserInfoResponse.model_validate(new_user))
+    return success_response(message="注册成功",data=response_data)
