@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import uuid
 
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -8,6 +9,7 @@ from app_backend.models.users import User, UserToken
 from app_backend.schemas.users import UserRegisterRequest
 from app_backend.utils import security
 
+from starlette import status
 async def get_user_by_username(db: AsyncSession, username: str):
     query_stmt = select(User).where(User.username == username)
     result = await db.execute(query_stmt)
@@ -61,4 +63,19 @@ async def get_user_by_token(db:AsyncSession,token:str):
     query_stmt=select(User).where(User.id==user_token.user_id)
     result=await db.execute(query_stmt)
     user=result.scalar_one_or_none()
+    return user
+
+async def update_user_password(db:AsyncSession,user:User,old_password:str,new_password:str):
+    # query_stmt=select(User).where(User.id==user_id)#不需要再查询一次了，直接用当前用户对象就行了
+    # result=await db.execute(query_stmt)
+    # user=result.scalar_one_or_none()
+    # if not user:
+    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="用户不存在")
+    if not security.verify_password(old_password,user.password):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="旧密码错误")
+    #更新密码
+    user.password=security.get_hash_password(new_password)
+    db.add(user)#防止session失效，导致更新失败!
+    await db.commit()
+    await db.refresh(user)
     return user

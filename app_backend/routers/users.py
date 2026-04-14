@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app_backend.config.db_conf import get_db
-from app_backend.schemas.users import UserAuthResponse, UserInfoBase, UserInfoResponse, UserRegisterRequest
+from app_backend.schemas.users import UserAuthResponse, UserInfoBase, UserInfoResponse, UserRegisterRequest, UserUpdatePasswordRequest
 from app_backend.crud import users
 from app_backend.utils.response import success_response
 from app_backend.utils.auth import get_current_user
@@ -59,3 +59,12 @@ async def update_user_info(user_info:UserInfoBase,current_user=Depends(get_curre
     await db.commit()
     await db.refresh(current_user)
     return success_response(message="更新用户信息成功",data=UserInfoResponse.model_validate(current_user))    
+@router.put("/password")
+async def update_user_password(
+    password:UserUpdatePasswordRequest,
+    current_user=Depends(get_current_user),
+    db:AsyncSession=Depends(get_db)
+):
+    user=await users.update_user_password(db,current_user,password.old_password,password.new_password)
+    reseponse_data=UserInfoResponse.model_validate(user)
+    return success_response(message="更新用户密码成功",data=reseponse_data)

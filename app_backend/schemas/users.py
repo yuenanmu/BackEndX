@@ -41,3 +41,6 @@ class UserAuthResponse(BaseModel):
         populate_by_name=True,#alias/字段名 兼容？
         from_attributes=True#允许从ORM对象属性中取值
     )
+class UserUpdatePasswordRequest(BaseModel):
+    old_password:str=Field(...,alias="oldPassword")
+    new_password:str=Field(...,min_length=6,alias="newPassword")#最少6位密码
