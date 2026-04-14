@@ -8,6 +8,7 @@ router=APIRouter(prefix="/api/users",tags=["用户相关接口"])
 
 @router.post("/register")
 async def register(user_data: UserRegisterRequest, db:AsyncSession=Depends(get_db)):#用户信息 (需要数据校验)和db
+
     #查询用户是否存在,如果存在，抛出异常
     exsiting_user=await users.get_user_by_username(db,user_data.username)
     if exsiting_user:
@@ -30,3 +31,13 @@ async def register(user_data: UserRegisterRequest, db:AsyncSession=Depends(get_d
     # }
     response_data=UserAuthResponse(token=new_user_token,userInfo=UserInfoResponse.model_validate(new_user))
     return success_response(message="注册成功",data=response_data)
+
+@router.post("/login")
+async def login(user_data: UserRegisterRequest, db:AsyncSession=Depends(get_db)):
+    #查询是否存在->密码是否正确->创建token->返回token和用户信息
+    user = await users.authenticate_user(db,user_data.username,user_data.password)
+    if not user:#虽然有全局异常处理，但是这里还是需要处理一下，不然会返回500错误，而不是401错误
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="用户名或密码错误")
+    user_token=await users.creat_user_token(db,user.id)
+    response_data=UserAuthResponse(token=user_token,userInfo=UserInfoResponse.model_validate(user))
+    return success_response(message="登录成功",data=response_data)

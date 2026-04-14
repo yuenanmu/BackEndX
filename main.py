@@ -16,6 +16,7 @@ app = FastAPI()
 
 # 注册全局异常处理器
 register_exception_handlers(app)
+
 #添加CORS中间件，解决跨域问题：协议、端口、域名都要一致才允许
 origins=[
     "http://localhost:3000",
