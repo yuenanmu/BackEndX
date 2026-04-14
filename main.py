@@ -39,3 +39,4 @@ app.include_router(news.router)
 app.include_router(users.router)
 #运行指令
 # uvicorn main:app --reload
+# cd app_frontend->npm run dev
