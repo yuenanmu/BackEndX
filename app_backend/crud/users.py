@@ -50,3 +50,15 @@ async def authenticate_user(db:AsyncSession,username:str,password:str):
     if not security.verify_password(password,user.password):
         return None
     return user
+async def get_user_by_token(db:AsyncSession,token:str):
+    #【查询令牌】是否存在且未过期
+    query_stmt=select(UserToken).where(UserToken.token==token)
+    result=await db.execute(query_stmt)
+    user_token=result.scalar_one_or_none()
+    if not user_token or user_token.expires_at<datetime.now(): #令牌不存在或者已过期
+        return None
+    #【查询用户信息】根据令牌关联的用户ID查询用户信息
+    query_stmt=select(User).where(User.id==user_token.user_id)
+    result=await db.execute(query_stmt)
+    user=result.scalar_one_or_none()
+    return user

@@ -4,6 +4,7 @@ from app_backend.config.db_conf import get_db
 from app_backend.schemas.users import UserAuthResponse, UserInfoResponse, UserRegisterRequest
 from app_backend.crud import users
 from app_backend.utils.response import success_response
+from app_backend.utils.auth import get_current_user
 router=APIRouter(prefix="/api/user",tags=["用户相关接口"])
 
 @router.post("/register")
@@ -43,5 +44,5 @@ async def login(user_data: UserRegisterRequest, db:AsyncSession=Depends(get_db))
     return success_response(message="登录成功",data=response_data)
 
 @router.get("/info")
-async def get_user_info():
-    return success_response(message="获取用户信息成功")
+async def get_user_info(current_user=Depends(get_current_user)):
+    return success_response(message="获取用户信息成功", data=UserInfoResponse.model_validate(current_user))
