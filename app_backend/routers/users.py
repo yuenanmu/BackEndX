@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app_backend.config.db_conf import get_db
-from app_backend.schemas.users import UserAuthResponse, UserInfoResponse, UserRegisterRequest
+from app_backend.schemas.users import UserAuthResponse, UserInfoBase, UserInfoResponse, UserRegisterRequest
 from app_backend.crud import users
 from app_backend.utils.response import success_response
 from app_backend.utils.auth import get_current_user
@@ -46,3 +46,16 @@ async def login(user_data: UserRegisterRequest, db:AsyncSession=Depends(get_db))
 @router.get("/info")
 async def get_user_info(current_user=Depends(get_current_user)):
     return success_response(message="获取用户信息成功", data=UserInfoResponse.model_validate(current_user))
+
+#用户数据更新接口：验证token信息->更新用户数据（put->请求体参数->定义pydantic模型）->响应
+@router.put("/update")
+async def update_user_info(user_info:UserInfoBase,current_user=Depends(get_current_user),db:AsyncSession=Depends(get_db)):
+    #更新用户信息
+    current_user.nickname=user_info.nickname
+    current_user.avatar=user_info.avatar
+    current_user.bio=user_info.bio
+    current_user.gender=user_info.gender
+    db.add(current_user)
+    await db.commit()
+    await db.refresh(current_user)
+    return success_response(message="更新用户信息成功",data=UserInfoResponse.model_validate(current_user))    
