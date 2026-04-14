@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from app_backend.routers import news, users
 from fastapi.middleware.cors import CORSMiddleware
+
+from app_backend.utils.exception_handlers import register_exception_handlers
 # import traceback
 # import sys
 
@@ -12,6 +14,8 @@ from fastapi.middleware.cors import CORSMiddleware
 # app = FastAPI(debug=True)
 app = FastAPI()
 
+# 注册全局异常处理器
+register_exception_handlers(app)
 #添加CORS中间件，解决跨域问题：协议、端口、域名都要一致才允许
 origins=[
     "http://localhost:3000",
