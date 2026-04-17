@@ -50,3 +50,8 @@ async def get_news_favorite_list(
     #]
     rows=result.all()#得到一个列表，每个元素是一个元组（News实例，收藏时间，收藏ID）
     return total,rows
+async def clear_news_favorite(db:AsyncSession,user_id:int):
+    delete_stmt=delete(Favorite).where(Favorite.user_id==user_id)
+    result=await db.execute(delete_stmt)
+    await db.commit()
+    return result.rowcount or 0#返回是否清空成功（即是否存在收藏记录）

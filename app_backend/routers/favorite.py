@@ -61,4 +61,11 @@ async def get_favorite_lsit(
         has_more=has_more
     )
     return success_response(message="成功获取收藏列表", data=response_data)
+@router.delete("/clear")
+async def clear_favorite(
+    user:User=Depends(get_current_user),
+    db:AsyncSession=Depends(get_db)
+):
+    result=await favorite.clear_news_favorite(db,user.id)
+    return success_response(message=f"成功清空{result}条收藏记录")
     
