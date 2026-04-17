@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app_backend.config.db_conf import get_db
 from app_backend.crud import favorite
@@ -27,4 +27,14 @@ async def add_favorite(
 ):
     result=await favorite.add_news_favorite(db,user.id,data.news_id)
     return success_response(message="收藏成功",data=result)
+@router.delete("/remove")
+async def remove_favorite(
+    news_id:int=Query(...,alias="newsId",description="新闻ID"),
+    user:User=Depends(get_current_user),
+    db:AsyncSession=Depends(get_db)
+):
+    result=await favorite.delete_news_favorite(db,user.id,news_id)
+    if not result:
+        raise HTTPException(404,"收藏记录不存在")
+    return success_response(message="收藏成功")
     

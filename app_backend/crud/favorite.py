@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession#异步引擎模块，导入异步会话类
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from app_backend.models.favorite import Favorite
 
 
@@ -15,3 +15,10 @@ async def add_news_favorite(db:AsyncSession,user_id:int,news_id:int):
     await db.refresh(new_favorite)#刷新实例以获取数据库生成的字段值（如时间戳）
 
     return new_favorite#因为刷新了，所以这个new_favorite生效了
+
+async def delete_news_favorite(db:AsyncSession,user_id:int,news_id:int):
+    #先查（query）再删除(remove)
+    delete_stmt=delete(Favorite).where(Favorite.user_id==user_id,Favorite.news_id==news_id)
+    result=await db.execute(delete_stmt)
+    await db.commit()
+    return result.rowcount>0#返回是否删除成功（即是否存在该收藏记录）
