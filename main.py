@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app_backend.routers import news, users
+from app_backend.routers import favorite, news, users
 from fastapi.middleware.cors import CORSMiddleware
 
 from app_backend.utils.exception_handlers import register_exception_handlers
@@ -37,6 +37,7 @@ async def read_root():
 #挂载模块化的路由（各个模块的接口）
 app.include_router(news.router)
 app.include_router(users.router)
+app.include_router(favorite.router)
 #运行指令
 # uvicorn main:app --reload
 # cd app_frontend->npm run dev
