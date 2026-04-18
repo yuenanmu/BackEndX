@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app_backend.models.history import History
 from app_backend.models.news import News
@@ -27,3 +27,11 @@ async def get_news_history_list(db:AsyncSession,user_id:int,page:int,page_size:i
     query_result=await db.execute(query_stmt)
     rows=query_result.all()
     return total,rows
+async def delete_news_history(db:AsyncSession,user_id:int,history_id:int):
+    delete_stmt=(
+        delete(History)
+        .where(History.id==history_id,History.user_id==user_id)
+    )
+    delete_result=await db.execute(delete_stmt)
+    await db.commit()
+    return delete_result.rowcount>0

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app_backend.config.db_conf import get_db
 from app_backend.models.users import User
@@ -45,3 +45,13 @@ async def get_history_list(
         "history_list":history_list
     }
     return success_response(message="成功获取浏览记录列表", data=response_data)
+@router.delete("/delete/{history_id}")
+async def delete_history(
+    history_id:int,
+    user:User=Depends(get_current_user),
+    db:AsyncSession=Depends(get_db)
+):
+    rowcount=await history.delete_news_history(db,user.id,history_id)
+    if rowcount==0:
+        raise HTTPException(404,"浏览记录不存在")
+    return success_response(message="成功删除浏览记录")
