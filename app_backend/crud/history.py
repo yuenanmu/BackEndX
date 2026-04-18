@@ -4,7 +4,8 @@ from app_backend.models.history import History
 from app_backend.models.news import News
 async def add_news_history(db:AsyncSession,user_id:int,news_id:int):
     new_history=History(user_id=user_id,news_id=news_id)
-    db.add(new_history)
+
+    db.add(new_history)#缓存一下
     await db.commit()
     await db.refresh(new_history)
 
@@ -35,3 +36,11 @@ async def delete_news_history(db:AsyncSession,user_id:int,history_id:int):
     delete_result=await db.execute(delete_stmt)
     await db.commit()
     return delete_result.rowcount>0
+async def clear_news_history(db:AsyncSession,user_id:int):
+    delete_stmt=(
+        delete(History)
+        .where(History.user_id==user_id)
+    )
+    result=await db.execute(delete_stmt)
+    await db.commit()   
+    return result.rowcount

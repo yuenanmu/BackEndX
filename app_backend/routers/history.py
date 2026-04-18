@@ -55,3 +55,10 @@ async def delete_history(
     if rowcount==0:
         raise HTTPException(404,"浏览记录不存在")
     return success_response(message="成功删除浏览记录")
+@router.delete("/clear")
+async def clear_history(
+    user:User=Depends(get_current_user),
+    db:AsyncSession=Depends(get_db)
+):
+    rowcount=await history.clear_news_history(db,user.id)
+    return success_response(message=f"成功清除{rowcount}条浏览记录")
