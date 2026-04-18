@@ -17,10 +17,10 @@ redis_client=redis.Redis(
 #设置和读取（字符串 和 字典）
 async def  set_cache(key:str,value:Any,expire:int=3600):
     try:
-        if isinstance(value,dict):
+        if isinstance(value,(dict, list)):#如果值是字典或列表，转成json字符串存储。单单列表还不行！
             #转字符串再存
             value=json.dumps(value,ensure_ascii=False)
-        await redis_client.set(key,expire,value)
+        await redis_client.setex(key,expire,value)
         return True
     except Exception as e:
         print(f"设置缓存失败: {e}")

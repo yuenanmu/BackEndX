@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import null
-from app_backend.crud import news
+from app_backend.crud import news, news_cache
 from sqlalchemy.ext.asyncio import AsyncSession
 from app_backend.config.db_conf import get_db
 #创建一个APIRouter实例，设置前缀prefix和标签tags
@@ -15,7 +15,7 @@ router=APIRouter(prefix="/api/news",tags=["新闻相关接口"])
 
 @router.get("/categories")
 async def get_news_categories(db: AsyncSession=Depends(get_db), skip: int = 0, limit: int = 10):
-    categories=await news.get_news_categories(db, skip, limit)
+    categories=await news_cache.get_news_categories(db, skip, limit)
     return {"code":200, 
             "skip": skip, 
             "limit": limit,
