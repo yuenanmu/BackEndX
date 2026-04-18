@@ -2,8 +2,9 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy import func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app_backend.cache.news_cache import get_cached_categories, set_cache_categories
-from app_backend.models.news import Category, News#导入自定义的模型类Category和News
+from app_backend.cache.news_cache import get_cached_categories, get_cached_news_list, set_cache_categories, set_cache_news_list
+from app_backend.models.news import Category, News
+from app_backend.schemas.base import NewsItemBase#导入自定义的模型类Category和News
 #普通的异步函数不需要进行依赖注入！直接传入db参数即可！不需要Depends(get_db)！
 # 因为这是一个纯粹的数据库操作函数，不涉及到HTTP请求的处理，所以不需要依赖注入来获取数据库会话对象！
 # 只要在调用这个函数时传入一个有效的AsyncSession对象就可以了！
@@ -12,7 +13,7 @@ async def get_news_categories(db:AsyncSession, skip: int = 0, limit: int = 10):
     #从缓存中查询所有分类
     cached_categories=await get_cached_categories()
     if cached_categories:
-        print("✌️成功从缓存中查询分类")
+        #print("✌️成功从缓存中查询分类")
         return cached_categories
     #数据库中查询所有分类
     query_stmt=select(Category).offset(skip).limit(limit)
@@ -22,13 +23,26 @@ async def get_news_categories(db:AsyncSession, skip: int = 0, limit: int = 10):
     if categories:
         categories=jsonable_encoder(categories)
         await set_cache_categories(categories)
-        print("✌️成功从数据库查询分类并写入缓存")
+        #print("✌️成功从数据库查询分类并写入缓存")
     return categories#这是一个Category类型的列表，包含了查询到的所有Category对象
 async def get_news_list(db:AsyncSession,category_id: int, skip: int = 0, limit: int = 10):
+    #先从缓存中查询这个分类下的新闻列表
+    page=skip//limit+1
+    cached_news_list=await get_cached_news_list(category_id, page, limit)
+    if cached_news_list:
+        #print("✌️成功从缓存中查询新闻列表")
+        #转换为News对象列表
+        return [News(**item) for item in cached_news_list]
     #查询指定分类下的新闻
     query_stmt=select(News).where(News.category_id==category_id).offset(skip).limit(limit)
     result=await db.execute(query_stmt)
     news_list=result.scalars().all()
+    #写入缓存
+    if news_list:
+        #ORM->Pydantic->JSON()
+        news_data=[NewsItemBase.model_validate(item).model_dump(mode="json",by_alias=False) for item in news_list]
+        await set_cache_news_list(category_id, page, limit, news_data)
+        #print("✌️成功从数据库查询新闻列表并写入缓存")
     return news_list
 #查询这个类别下的新闻总数
 async def get_news_num(db:AsyncSession,category_id: int):
